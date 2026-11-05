@@ -14,10 +14,10 @@ A staff attendance system, not a student system. Each employee installs the mobi
 | Mobile app | Expo React Native, TypeScript | One codebase for Android and iOS, fingerprint via Expo LocalAuthentication, GPS via expo-location | Free |
 | Database and Auth | Supabase (Postgres + Auth + Row Level Security) | Free tier fits this data size, real Postgres, RLS keeps employees from seeing each other | Free tier |
 | Admin panel | Vite React, TypeScript | Fast, small, deploys free | Free |
-| Admin hosting | Netlify or Cloudflare Pages | Free static hosting | Free |
+| Admin hosting | GitHub Pages (live since 2026-11-05) | Free static hosting, no new account | Free |
 | Excel export | SheetJS (xlsx) in the admin panel | Monthly file generated in the browser from live data, no server needed | Free |
 
-Vercel is NOT used for this project. The user banned Vercel for everything except KezTech. Netlify or Cloudflare Pages is the deploy target for the admin panel.
+Vercel is NOT used for this project. The user banned Vercel for everything except KezTech. The admin panel is live at https://pakmultilinks-dot.github.io/lgu-attendance-app/ (gh-pages branch, built from admin/, verified HTTP 200, Sign in page renders). Netlify and Cloudflare Pages were tried first and both needed a browser login this machine does not have, so GitHub Pages was used instead. The build is configured for the /lgu-attendance-app/ subpath (base in admin/vite.config.ts, basename in admin/src/App.tsx, 404.html SPA fallback); a root-domain host needs base '/' again. The live panel uses the demo Supabase values, so sign-in does NOT work live until a real Supabase project replaces them.
 
 ## Free tier limits (honest numbers)
 

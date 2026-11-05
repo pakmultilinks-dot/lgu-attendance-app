@@ -170,12 +170,15 @@ In the admin panel, Settings page:
 4. Set office start time, end time, and the late cutoff (default 09:15).
 5. Save. The next check in uses the new pin immediately.
 
-## 6. Deploy the admin panel free (Netlify)
+## 6. Deploy the admin panel free (GitHub Pages, live now)
 
-1. Push the `admin/` folder to a GitHub repo.
-2. In Netlify, New site from Git, pick the repo, set base directory to `admin`, build command `npm run build`, publish directory `dist`.
-3. In Netlify Site settings, Environment variables, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
-4. Deploy. Cloudflare Pages works the same way (build command `npm run build`, output `dist`).
+Live HOD dashboard (deployed 2026-11-05, verified HTTP 200, Sign in page renders):
+
+https://pakmultilinks-dot.github.io/lgu-attendance-app/
+
+It is served from the `gh-pages` branch of https://github.com/pakmultilinks-dot/lgu-attendance-app (built from `admin/`, commit db9b5c7 on main). The build uses the demo Supabase values (`https://demo.supabase.co` / `demo-key`), so sign-in will NOT work live until a real Supabase project replaces them. See the live limits in section 8.
+
+How it was deployed: Netlify and Cloudflare Pages both needed a browser login this machine does not have, so the panel went to GitHub Pages instead (free, no new account, already connected as pakmultilinks-dot). To redeploy after a change: `cd admin && npm run build`, copy `dist/` to the `gh-pages` branch, push. The build is configured for the `/lgu-attendance-app/` subpath (`base` in `admin/vite.config.ts` and `basename` in `admin/src/App.tsx`, plus a `404.html` SPA fallback). For a root-domain host (e.g. Netlify) change `base` back to `'/'` and drop the basename.
 
 Do not deploy to Vercel for this project. The user banned Vercel except for KezTech.
 
