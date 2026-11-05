@@ -25,7 +25,8 @@
     "orientation": "portrait",
     "plugins": [
       "expo-location",
-      "expo-local-authentication"
+      "expo-local-authentication",
+      "expo-asset"
     ],
     "scheme": "lgu-attendance",
     "slug": "lgu-attendance",
