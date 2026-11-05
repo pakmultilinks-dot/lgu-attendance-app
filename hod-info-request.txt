@@ -1,0 +1,14 @@
+LGU Exam Department attendance app, info needed from HOD
+
+Assalam-o-Alaikum, we are building a free attendance app for the Exam Department: staff check in and out on their own phones with fingerprint, only inside a 100 metre radius of the office, and the monthly Excel report is generated automatically. A free APK link will be shared first, no Play Store fee now.
+
+To finish it, I need these four things:
+
+1. Office location pin. Please share the Google Maps pin of the Exam Department office (or its latitude and longitude).
+2. Staff list. Please fill the attached staff roster sheet: full name, employee ID, designation, official email, phone number.
+3. Office timings. Start time, end time, and after what time is a check-in counted Late? (Current defaults in the app: 9:00 AM start, 5:00 PM end, Late after 9:15 AM, Monday to Friday.)
+4. HOD details. Your full name and email for the admin login.
+
+Leave: the app is set to 20 leave days per year for everyone as a starting point. Please confirm if that number is right, or give separate numbers for casual and sick leave.
+
+Note: the phone fingerprint only confirms the person holding the phone is its owner, it does not store any fingerprint. Proxy is stopped by login plus own phone plus fingerprint plus office location plus server time together.
