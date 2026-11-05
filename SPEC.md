@@ -476,5 +476,19 @@ viewport checks (Try demo button bottom at 431px on load at 390x844
 and at 390x700), plus a scroll fallback check at 390x500. New
 screenshots `screenshots-demo/demo-login-button.png` (overwritten
 with the fixed screen) and `screenshots-demo/demo-login-700.png`.
-This fix is local only. No EAS build, no GitHub push, no publish was
-done in this task. It ships with the next APK build.
+Shipped in APK build v3 below.
+
+## APK build v3 with login fix (2026-11-05)
+
+The user approved the rebuild explicitly, as a continuation of the demo login rebuild.
+
+- Commit: d317f17 "Fix login screen: Try demo visible on load, no scroll needed on phone" (9 files, pushed to main, verified live on GitHub).
+- EAS project: @kominman/lgu-attendance, ID f7a0ea5a-f432-4eb6-8b01-07d80f0854af
+- Build 5 b84cea05-d4a1-4b18-b040-2898a6d8ced4 FINISHED, app 1.0.0, SDK 52.0.0, APK 59 MB, no build errors, first attempt.
+- APK download (Expo): https://expo.dev/artifacts/eas/kyNKj3dfM0WEMLbzKTuI0HsMVeeA4bnO6guGDbb426g.apk
+- Build page: https://expo.dev/accounts/kominman/projects/lgu-attendance/builds/b84cea05-d4a1-4b18-b040-2898a6d8ced4
+- Direct download link: https://muse.ai/files/1496070203584880/1601107027958125/2gdebj4p8fxm0ncqb22927v3/LGU-Attendance-App-v3-login-fix.apk (expires 2026-11-07T12:50:06Z, anyone with the link can open it)
+- Verified: downloaded 59 MB, file confirms Android package, JS bundle (1.5 MB) contains "Try demo" (2 occurrences) and "Ahmed Khan". SHA256: 685bc1d6800d9eee6cfa3b2759a51f74932c0137149007c7d1812f47c9aacb7f
+- Local file: LGU-Attendance-App-v3-login-fix.apk (gitignored, not committed).
+
+Live limits, unchanged: real sign-in does NOT work live, no live Supabase project exists. Demo login works offline on the phone with no account. To make real sign-in live: create a free Supabase project, run supabase/schema.sql then supabase/seed.sql, set the real EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in the EAS preview env, rebuild. Fingerprint accept and real GPS at the office door still need a real-phone test. No Play Store publish.

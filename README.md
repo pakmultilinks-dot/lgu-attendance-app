@@ -224,6 +224,14 @@ That produces an APK download link to share with staff. No EAS build was run as 
 - Direct download: https://muse.ai/files/1496070203584880/1716689630466724/qpyls1w76377rv37yki6op8l/LGU-Attendance-App-v2-demo.apk (expires 2026-11-07T12:02:48Z)
 - On the phone, open the app and tap "Try demo, no account needed" to sign in as Ahmed Khan, EX-001, offline. Real sign-in still needs a live Supabase project, see SPEC.md.
 
+## APK build v3 with login fix (2026-11-05)
+
+- Commit d317f17, EAS build 5 b84cea05-d4a1-4b18-b040-2898a6d8ced4 FINISHED, APK 59 MB.
+- Expo APK: https://expo.dev/artifacts/eas/kyNKj3dfM0WEMLbzKTuI0HsMVeeA4bnO6guGDbb426g.apk
+- Direct download: https://muse.ai/files/1496070203584880/1601107027958125/2gdebj4p8fxm0ncqb22927v3/LGU-Attendance-App-v3-login-fix.apk (expires 2026-11-07T12:50:06Z)
+- Fix: slim login header, no duplicate brand block, whole login about 480px tall, Try demo visible on load at 390x844 and 390x700 with no scroll, ScrollView fallback. SHA256: 685bc1d6800d9eee6cfa3b2759a51f74932c0137149007c7d1812f47c9aacb7f
+- On the phone, open the app and tap "Try demo, no account needed" to sign in as Ahmed Khan, EX-001, offline. Real sign-in still needs a live Supabase project, see SPEC.md.
+
 ## Daily use
 
 - Employee: open app, tap Check In on arrival, tap Check Out on leaving. Fingerprint each time. To take leave, use Apply for Leave in the app, then check My Leaves for the HOD decision.
