@@ -372,3 +372,17 @@ test HOD record has no personal name, only the title "Head of
 Department"; with a real HOD name the initials will be correct. The
 admin login still uses the text "LGU" monogram, not the real LGU crest,
 because no logo file exists in the repo.
+
+## APK build v1 (2026-11-05) - open env item now closed
+
+The open item from v2/v3 (mobile throws at import without EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY, no .env file) is closed for the build: the preview profile in `mobile/eas.json` supplies both values as build env, and the EAS build succeeded with them.
+
+- Repo: https://github.com/pakmultilinks-dot/lgu-attendance-app (public, main, commits 9ab9ede, 4aeefff, dc4bcd9, 84f282c, 30a531a)
+- EAS project: @kominman/lgu-attendance, ID f7a0ea5a-f432-4eb6-8b01-07d80f0854af
+- Build 1 cc8dbe9b-7178-41eb-86f4-fe05a4ffa6b2 ERRORED, Bundle JavaScript: `expo-asset` missing. Fixed by adding expo-asset ~11.0.5, commit 84f282c.
+- Build 2 4a835d85-063f-4696-976c-5f5ad647d741 ERRORED, Gradle: `:expo-modules-core:compileReleaseKotlin` failed, Compose Compiler 1.5.15 requires Kotlin 1.9.25, project used 1.9.24. Fixed by adding expo-build-properties ~0.13.3 with android.kotlinVersion 1.9.25, commit 30a531a.
+- Build 3 1b811809-1c52-4f35-8722-e1df5388cd90 FINISHED 2026-11-05T11:29:07Z, app 1.0.0, SDK 52.0.0, APK 59 MB, verified live and downloaded, valid Android package, JS bundle contains the app strings.
+- APK download: https://expo.dev/artifacts/eas/JOl4izNM33NRZSeka7C8EzYeLpTNUJlbmASlKAdv98A.apk
+- Build page: https://expo.dev/accounts/kominman/projects/lgu-attendance/builds/1b811809-1c52-4f35-8722-e1df5388cd90
+
+Live limits: the APK uses demo Supabase values (https://demo.supabase.co / demo-key). No live Supabase project exists, so sign-in does not work live. To make it live: create a free Supabase project, run supabase/schema.sql then supabase/seed.sql in it, set the real EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in the EAS preview env, rebuild. Fingerprint and GPS still need a real-phone test. No Play Store publish.

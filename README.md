@@ -189,3 +189,23 @@ days, so day 10 could not be tapped; fixed, the form scrolls and
 content clears the tab bar. Full detail in `SPEC.md` and in the v3
 section at the end of `E2E-TEST-REPORT.md`. `react-native-svg@15.8.0`
 was added to the mobile project for the SVG icons.
+
+## v1 APK build (2026-11-05)
+
+Repo: https://github.com/pakmultilinks-dot/lgu-attendance-app (public, main branch)
+
+EAS project: @kominman/lgu-attendance, project ID f7a0ea5a-f432-4eb6-8b01-07d80f0854af
+
+Build: preview profile, Android APK, build ID 1b811809-1c52-4f35-8722-e1df5388cd90, status FINISHED, app version 1.0.0, SDK 52.0.0. APK download (verified live 2026-11-05, 59 MB, real Android package):
+
+```
+https://expo.dev/artifacts/eas/JOl4izNM33NRZSeka7C8EzYeLpTNUJlbmASlKAdv98A.apk
+```
+
+Build page: https://expo.dev/accounts/kominman/projects/lgu-attendance/builds/1b811809-1c52-4f35-8722-e1df5388cd90
+
+Two build failures were fixed on the way, both committed to main:
+- Build 1 failed in Bundle JavaScript: `expo-asset` was missing. Added `expo-asset ~11.0.5`.
+- Build 2 failed in Gradle: Compose Compiler 1.5.15 requires Kotlin 1.9.25, default was 1.9.24. Added `expo-build-properties ~0.13.3` with `android.kotlinVersion` 1.9.25.
+
+Honest live limits, read before installing: the APK was built with the demo Supabase values (`https://demo.supabase.co` / `demo-key`) because no live Supabase project exists yet. The app installs, opens and shows the v3 screens, but sign-in will NOT work on a real phone until a real free Supabase project is created, `supabase/schema.sql` and `supabase/seed.sql` are run in it, and the app is rebuilt with that project's real URL and anon key. Fingerprint and GPS also still need a real-phone test. No Play Store publish was done.
