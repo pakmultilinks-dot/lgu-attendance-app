@@ -1,0 +1,1 @@
+{"build":{"preview":{"android":{"buildType":"apk"},"distribution":"internal","env":{"EXPO_PUBLIC_SUPABASE_ANON_KEY":"demo-key","EXPO_PUBLIC_SUPABASE_URL":"https://demo.supabase.co"}},"production":{"android":{"buildType":"app-bundle"}}},"cli":{"version":">= 5.9.0"},"submit":{"production":{}}}
