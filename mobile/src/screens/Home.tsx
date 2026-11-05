@@ -7,6 +7,7 @@ import { colors, radius, shadow, spacing } from '../components/design';
 import { supabase, type AttendanceRecord, type Employee, type OfficeSettings } from '../lib/supabase';
 import { doCheckIn, doCheckOut, formatDate, formatTime, loadHistory, loadOfficeSettings, loadTodayRecord } from '../lib/attendance';
 import { loadLeaveBalance } from '../lib/leaves';
+import { DEMO_SETTINGS, demoCheckIn, demoCheckOut, demoLoadHistory, demoLoadLeaveBalance, demoLoadTodayRecord } from '../lib/demo';
 
 function initialsOf(fullName: string): string {
   // displayName already strips any seed tag, so initials come from the
@@ -35,8 +36,9 @@ function MenuRow({ icon, label, onPress }: { icon: IconName; label: string; onPr
   );
 }
 
-export default function HomeScreen({ employee, onSignOut, onApplyLeave, onViewLeaves, onViewHistory }: {
+export default function HomeScreen({ employee, isDemo, onSignOut, onApplyLeave, onViewLeaves, onViewHistory }: {
   employee: Employee;
+  isDemo?: boolean;
   onSignOut: () => void;
   onApplyLeave: () => void;
   onViewLeaves: () => void;
@@ -53,6 +55,13 @@ export default function HomeScreen({ employee, onSignOut, onApplyLeave, onViewLe
 
   async function refresh() {
     try {
+      if (isDemo) {
+        setSettings(DEMO_SETTINGS);
+        setToday(await demoLoadTodayRecord());
+        setHistory(await demoLoadHistory(14));
+        setBalance(await demoLoadLeaveBalance());
+        return;
+      }
       const s = await loadOfficeSettings();
       setSettings(s);
       setToday(await loadTodayRecord(employee.id));
@@ -70,18 +79,20 @@ export default function HomeScreen({ employee, onSignOut, onApplyLeave, onViewLe
   const onLeaveToday = today !== null && today.status === 'Leave';
 
   async function onCheckIn() {
-    if (!settings) return;
+    const s = isDemo ? DEMO_SETTINGS : settings;
+    if (!s) return;
     setBusy(true); setMessage(''); setError('');
-    const result = await doCheckIn(settings);
+    const result = isDemo ? await demoCheckIn(s) : await doCheckIn(s);
     setBusy(false);
     if (result.ok) { setMessage(result.message); await refresh(); }
     else setError(result.message);
   }
 
   async function onCheckOut() {
-    if (!settings) return;
+    const s = isDemo ? DEMO_SETTINGS : settings;
+    if (!s) return;
     setBusy(true); setMessage(''); setError('');
-    const result = await doCheckOut(settings);
+    const result = isDemo ? await demoCheckOut(s) : await doCheckOut(s);
     setBusy(false);
     if (result.ok) { setMessage(result.message); await refresh(); }
     else setError(result.message);
@@ -110,8 +121,13 @@ export default function HomeScreen({ employee, onSignOut, onApplyLeave, onViewLe
               <Text style={local.profileName}>{displayName(employee.full_name)}</Text>
               <Text style={local.profileMeta}>{employee.designation}</Text>
               <Text style={local.profileMeta}>ID: {employee.employee_id}</Text>
+              {isDemo ? (
+                <View style={local.demoPill}>
+                  <Text style={local.demoPillText}>Demo, data stays on this phone</Text>
+                </View>
+              ) : null}
             </View>
-            <TouchableOpacity onPress={async () => { await supabase.auth.signOut(); onSignOut(); }} hitSlop={8}>
+            <TouchableOpacity onPress={async () => { if (!isDemo) await supabase.auth.signOut(); onSignOut(); }} hitSlop={8}>
               <Text style={local.signOutLink}>Sign out</Text>
             </TouchableOpacity>
           </View>
@@ -270,6 +286,11 @@ const local = {
   greeting: { color: '#9DC3AB', fontSize: 13, fontWeight: '600' as const },
   profileName: { color: colors.white, fontSize: 20, fontWeight: '800' as const, marginTop: 2, lineHeight: 25 },
   profileMeta: { color: '#CDE6D5', fontSize: 13, marginTop: 2 },
+  demoPill: {
+    alignSelf: 'flex-start' as const, backgroundColor: colors.gold, borderRadius: 999,
+    paddingHorizontal: 10, paddingVertical: 4, marginTop: 8,
+  },
+  demoPillText: { color: colors.deepGreen, fontSize: 12, fontWeight: '800' as const },
   signOutLink: { color: '#CDE6D5', fontSize: 13, fontWeight: '700' as const, textDecorationLine: 'underline' as const },
   todayDate: { fontSize: 15, color: colors.muted, marginBottom: spacing.md },
   timelineRow: { flexDirection: 'row' as const, backgroundColor: colors.mint, borderRadius: radius.input, paddingVertical: spacing.sm, marginBottom: spacing.sm },

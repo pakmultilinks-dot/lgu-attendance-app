@@ -386,3 +386,52 @@ The open item from v2/v3 (mobile throws at import without EXPO_PUBLIC_SUPABASE_U
 - Build page: https://expo.dev/accounts/kominman/projects/lgu-attendance/builds/1b811809-1c52-4f35-8722-e1df5388cd90
 
 Live limits: the APK uses demo Supabase values (https://demo.supabase.co / demo-key). No live Supabase project exists, so sign-in does not work live. To make it live: create a free Supabase project, run supabase/schema.sql then supabase/seed.sql in it, set the real EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in the EAS preview env, rebuild. Fingerprint and GPS still need a real-phone test. No Play Store publish.
+
+## Demo login mode, 5 November 2026
+
+The user installed the v1 APK and was stuck on the Staff sign in screen:
+no live Supabase project exists, so no real login works. Demo mode was
+added so he can get inside the app on his phone with one tap.
+
+- Login screen, below Sign In: "Try demo, no account needed". Tapping it
+  signs in locally as Ahmed Khan, EX-001, Assistant (Examinations). No
+  password, no account, no network, no Supabase call.
+- Demo data: the seed attendance rows for Ahmed Khan, 2 to 4 Nov 2026
+  (Present, Present, Late), already in the app. Today starts unchecked
+  on purpose, so Check In can be tried. Leave balance 20 days allowed,
+  0 taken.
+- Demo works fully offline: Home profile and today, Check In with
+  fingerprint, Check Out and total hours, History grouped by month,
+  Apply for Leave with the real date picker, My Leaves and balance.
+  Demo check-ins and leave requests are stored only in AsyncStorage on
+  the phone (`lgu_demo_state_v1`, session flag `lgu_demo_active_v1`)
+  and survive an app reload. Demo sign-out returns to the login screen.
+- The session is labelled in the UI with a gold "Demo, data stays on
+  this phone" pill on Home, so demo data is never confused with live data.
+- Fingerprint is NOT faked in demo mode: demo check in runs the same
+  GPS radius check then the real phone biometric prompt. On a phone with
+  no sensor it refuses honestly and writes no record.
+- Real email/password sign in is unchanged for when live Supabase is
+  connected. If no real Supabase project is configured, it now shows
+  "Sign in is not set up yet. Use Try demo, or ask for the live database
+  to be connected." instead of crashing or failing silently. Importing
+  the Supabase client no longer throws when env vars are missing; it
+  falls back to demo values and `isSupabaseConfigured` is false.
+- What does NOT sync in demo mode: nothing. No check-in, leave request
+  or balance change leaves the phone. The HOD never sees demo data.
+  Demo data is left behind when the user signs in with a real account,
+  never merged into live data.
+- Implementation: new `mobile/src/lib/demo.ts` (demo employee, settings,
+  seed state, AsyncStorage store, demo check in/out, demo leave apply);
+  `mobile/src/lib/supabase.ts` no longer throws at import;
+  `App.tsx` restores a demo session on launch and routes demo sign-out;
+  Login, Home, History, LeaveApply and Leaves screens branch on an
+  `isDemo` prop. Live Supabase paths are untouched.
+- Tested 5 November 2026: mobile typecheck 0 errors, logic tests 43
+  passed, Excel tests 6 passed. Demo E2E (`tests/e2e-screenshots-demo.py`,
+  real Expo web export built with no Supabase env vars at all): 11
+  checks, 0 failed, no console errors. Screenshots in `screenshots-demo/`
+  (7 PNGs). Not tested on a real phone yet: fingerprint accept and real
+  GPS at the office door still need the next APK build and a phone test.
+- Still NOT done: no EAS build, no GitHub push, no publish. The next
+  build ships this demo mode as-is.

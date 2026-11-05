@@ -177,3 +177,35 @@ Fixes found by the v3 test run:
 Still not tested: real fingerprint (no sensor on this VM, the app
 reached the biometric step and was refused), real phone GPS at the
 office door, live Supabase Auth/RLS/RPCs, and any EAS build or APK.
+
+## 7. Demo login mode, 5 November 2026
+
+The user installed the v1 APK and was stuck on the Staff sign in screen,
+because no live Supabase project exists and no real login works. Demo
+mode was added so he can get inside the app with one tap.
+
+| Check | Result |
+|---|---|
+| Mobile TypeScript typecheck | Pass, 0 errors. |
+| Core logic tests (`node tests/logic-tests.mjs`) | 43 passed, 0 failed. |
+| Excel builder tests (`npx vitest run src/lib/excel.test.ts`) | 6 passed, 0 failed. |
+| Demo E2E (`python3 tests/e2e-screenshots-demo.py`) | 11 checks, 0 failed, no console errors. Real Expo web export built with no Supabase env vars at all, which proves the app no longer throws at import without them. |
+| Em-dash scan over changed files and docs | 0 matches. |
+
+Demo E2E checks: login shows the Try demo button; real sign in without
+a live database shows the setup message; Try demo opens Ahmed Khan home
+with the Demo pill; demo state stored locally (`lgu_demo_state_v1`,
+`lgu_demo_active_v1`); history shows the seed rows grouped by month;
+check in inside the radius reaches the biometric step and is refused
+with "This phone has no fingerprint or face sensor" on this VM, no
+check-in written; leave apply through the picker saved locally and
+stays Pending; My Leaves shows the pending request and 20 days balance;
+demo session restored after reload; demo sign out returns to login.
+Screenshots in `screenshots-demo/` (7 PNGs). One fix found by checking
+the screenshots: the first demo-checkin shot was identical to home
+because the error banner sits below the fold; the harness now scrolls
+it into view before the shot.
+
+Still not tested: fingerprint accept and real GPS at the office door
+need a real phone, which needs the next APK build. No EAS build, no
+GitHub push, no publish was done in this task.

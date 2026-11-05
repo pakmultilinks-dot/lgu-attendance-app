@@ -36,6 +36,36 @@ Supabase dashboard and link them, or create staff from the admin panel. The
 seed is idempotent (running it twice changes nothing). A commented cleanup
 block at the end of seed.sql removes the demo rows, only when the HOD orders it.
 
+## Demo login (Try demo, no account needed)
+
+Added 5 November 2026, because the v1 APK opened on the Staff sign in
+screen and no login worked without a live Supabase project. To get
+inside the app on a phone right now, open it and tap "Try demo, no
+account needed" below Sign In. No password, no account, no network.
+
+- It opens as Ahmed Khan, EX-001, Assistant (Examinations), with the
+  seed attendance rows for 2 to 4 Nov 2026 already in the app. Today
+  starts unchecked, so Check In can be tried. Leave balance 20 days
+  allowed, 0 taken.
+- Everything works offline in demo: profile and today, Check In and
+  Check Out with fingerprint, History grouped by month, Apply for Leave
+  with the date picker, My Leaves and balance. Demo check-ins and leave
+  requests are stored only on the phone and survive an app reload. The
+  Home screen shows a gold "Demo, data stays on this phone" pill, so
+  demo data is never confused with live data.
+- Fingerprint is not faked: demo check in runs the real GPS radius check
+  and then the real phone fingerprint prompt. On a phone with no sensor
+  it says so and writes nothing.
+- What does NOT happen in demo: nothing is sent to any server, nothing
+  is synced to the office, and the HOD never sees demo data. Demo data
+  is left behind when a real account signs in, never merged.
+- Real email/password sign in is still there for when the live database
+  is connected. Until then it shows "Sign in is not set up yet. Use Try
+  demo, or ask for the live database to be connected." instead of
+  crashing. No password is stored anywhere in the code for demo login.
+- Demo E2E (`tests/e2e-screenshots-demo.py`): 11 checks, 0 failed.
+  Screenshots in `screenshots-demo/`. Full detail in `SPEC.md`.
+
 ## Tests (run before any build)
 
 ```bash
@@ -208,4 +238,4 @@ Two build failures were fixed on the way, both committed to main:
 - Build 1 failed in Bundle JavaScript: `expo-asset` was missing. Added `expo-asset ~11.0.5`.
 - Build 2 failed in Gradle: Compose Compiler 1.5.15 requires Kotlin 1.9.25, default was 1.9.24. Added `expo-build-properties ~0.13.3` with `android.kotlinVersion` 1.9.25.
 
-Honest live limits, read before installing: the APK was built with the demo Supabase values (`https://demo.supabase.co` / `demo-key`) because no live Supabase project exists yet. The app installs, opens and shows the v3 screens, but sign-in will NOT work on a real phone until a real free Supabase project is created, `supabase/schema.sql` and `supabase/seed.sql` are run in it, and the app is rebuilt with that project's real URL and anon key. Fingerprint and GPS also still need a real-phone test. No Play Store publish was done.
+Honest live limits, read before installing: the APK was built with the demo Supabase values (`https://demo.supabase.co` / `demo-key`) because no live Supabase project exists yet. The app installs, opens and shows the v3 screens, but real email/password sign-in will NOT work on a real phone until a real free Supabase project is created, `supabase/schema.sql` and `supabase/seed.sql` are run in it, and the app is rebuilt with that project's real URL and anon key. Until then, use "Try demo, no account needed" on the login screen to get inside the app (added after this build, see Demo login above, ships with the next build). Fingerprint and GPS also still need a real-phone test. No Play Store publish was done.

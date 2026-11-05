@@ -4,19 +4,21 @@ import { AppHeader, EmptyState, ErrorBanner, StatusPill, shared } from '../compo
 import { colors, spacing } from '../components/design';
 import type { AttendanceRecord, Employee } from '../lib/supabase';
 import { formatDate, formatTime, loadHistory } from '../lib/attendance';
+import { demoLoadHistory } from '../lib/demo';
 
 // Full history view, grouped by month. Home shows the last 14 days;
 // this screen loads 90. Rows include Leave and Absent days: Leave rows
 // come from approved leave requests (with the leave type shown), Absent
 // rows are written by the HOD marking absent at day end. A day with no
 // row at all means absent has not been marked for that day yet.
-export default function HistoryScreen({ employee }: { employee: Employee }) {
+export default function HistoryScreen({ employee, isDemo }: { employee: Employee; isDemo?: boolean }) {
   const [rows, setRows] = useState<AttendanceRecord[]>([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    loadHistory(employee.id, 90).then(setRows).catch(() => setError('Could not load history.'));
-  }, [employee.id]);
+    const load = isDemo ? demoLoadHistory(90) : loadHistory(employee.id, 90);
+    load.then(setRows).catch(() => setError('Could not load history.'));
+  }, [employee.id, isDemo]);
 
   const groups: { label: string; rows: AttendanceRecord[] }[] = [];
   for (const row of rows) {

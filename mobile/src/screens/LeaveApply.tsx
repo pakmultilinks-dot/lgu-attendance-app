@@ -5,6 +5,7 @@ import { Icon } from '../components/icons';
 import { colors, radius, spacing } from '../components/design';
 import { LEAVE_TYPES, workingDaysBetween, type Employee, type LeaveType } from '../lib/supabase';
 import { applyLeave } from '../lib/leaves';
+import { demoApplyLeave } from '../lib/demo';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const YEARS = [2026, 2027];
@@ -80,7 +81,7 @@ function DateField({ label, value, onChange }: { label: string; value: string; o
   );
 }
 
-export default function LeaveApplyScreen({ employee, onDone }: { employee: Employee; onDone: () => void }) {
+export default function LeaveApplyScreen({ employee, isDemo, onDone }: { employee: Employee; isDemo?: boolean; onDone: () => void }) {
   const [leaveType, setLeaveType] = useState<LeaveType>('Casual');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -99,7 +100,9 @@ export default function LeaveApplyScreen({ employee, onDone }: { employee: Emplo
   async function submit() {
     if (!startDate || !endDate) { setError('Choose a start date and an end date.'); return; }
     setBusy(true); setMessage(''); setError('');
-    const result = await applyLeave(employee.id, { leaveType, startDate, endDate, reason, note });
+    const result = isDemo
+      ? await demoApplyLeave({ leaveType, startDate, endDate, reason, note })
+      : await applyLeave(employee.id, { leaveType, startDate, endDate, reason, note });
     setBusy(false);
     if (result.ok) { setMessage(result.message); setReason(''); setNote(''); }
     else setError(result.message);

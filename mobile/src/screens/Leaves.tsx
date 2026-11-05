@@ -5,6 +5,7 @@ import { colors, radius, shadow, spacing, toneFor } from '../components/design';
 import type { Employee, LeaveRequest } from '../lib/supabase';
 import { formatDate } from '../lib/attendance';
 import { loadLeaveBalance, loadMyLeaves } from '../lib/leaves';
+import { demoLoadLeaveBalance, demoLoadMyLeaves } from '../lib/demo';
 
 function LeaveStatusPill({ status }: { status: string }) {
   const tone = toneFor(status);
@@ -16,15 +17,20 @@ function LeaveStatusPill({ status }: { status: string }) {
   );
 }
 
-export default function LeavesScreen({ employee, onBack }: { employee: Employee; onBack: () => void }) {
+export default function LeavesScreen({ employee, isDemo, onBack }: { employee: Employee; isDemo?: boolean; onBack: () => void }) {
   const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
   const [balance, setBalance] = useState<{ allowance: number; taken: number; remaining: number } | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (isDemo) {
+      demoLoadMyLeaves().then(setLeaves).catch(() => setError('Could not load your leave requests.'));
+      demoLoadLeaveBalance().then(setBalance).catch(() => undefined);
+      return;
+    }
     loadMyLeaves(employee.id).then(setLeaves).catch(() => setError('Could not load your leave requests.'));
     loadLeaveBalance(employee.id).then(setBalance).catch(() => undefined);
-  }, [employee.id]);
+  }, [employee.id, isDemo]);
 
   const leaveProgress = balance && balance.allowance > 0 ? balance.taken / balance.allowance : 0;
 

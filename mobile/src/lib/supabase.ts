@@ -1,12 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL as string;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string;
+const rawUrl = process.env.EXPO_PUBLIC_SUPABASE_URL as string | undefined;
+const rawKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string | undefined;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY. Copy .env.example to .env and fill it in.');
-}
+// True only when a real Supabase project is configured. The demo values
+// shipped with the APK (demo.supabase.co) and the .env.example placeholder
+// do not count. The client is still created with safe fallback values so
+// importing this file never crashes the app; screens check this flag
+// before calling sign in and show a human message instead.
+export const isSupabaseConfigured =
+  Boolean(rawUrl) &&
+  Boolean(rawKey) &&
+  !rawUrl!.includes('demo.supabase.co') &&
+  !rawUrl!.includes('your-project');
+
+const supabaseUrl = isSupabaseConfigured ? rawUrl! : 'https://demo.supabase.co';
+const supabaseAnonKey = isSupabaseConfigured ? rawKey! : 'demo-key';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

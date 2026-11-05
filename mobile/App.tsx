@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import { supabase, type Employee } from './src/lib/supabase';
+import { DEMO_EMPLOYEE, isDemoSessionActive, setDemoSessionActive } from './src/lib/demo';
 import LoginScreen from './src/screens/Login';
 import HomeScreen from './src/screens/Home';
 import HistoryScreen from './src/screens/History';
@@ -61,27 +62,68 @@ const tabStyles = {
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [employee, setEmployee] = useState<Employee | null>(null);
+  const [isDemo, setIsDemo] = useState(false);
   const [view, setView] = useState<ScreenView>('home');
+  const isDemoRef = useRef(false);
+
+  async function enterDemo() {
+    isDemoRef.current = true;
+    setIsDemo(true);
+    setEmployee(DEMO_EMPLOYEE);
+    setView('home');
+    await setDemoSessionActive(true);
+  }
+
+  async function exitDemo() {
+    isDemoRef.current = false;
+    setIsDemo(false);
+    setEmployee(null);
+    await setDemoSessionActive(false);
+  }
 
   async function loadEmployee(userId: string) {
-    const { data } = await supabase
-      .from('employees')
-      .select('*')
-      .eq('auth_user_id', userId)
-      .maybeSingle();
-    setEmployee((data as Employee | null) ?? null);
+    try {
+      const { data } = await supabase
+        .from('employees')
+        .select('*')
+        .eq('auth_user_id', userId)
+        .maybeSingle();
+      setEmployee((data as Employee | null) ?? null);
+    } catch {
+      setEmployee(null);
+    }
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (data.session?.user) await loadEmployee(data.session.user.id);
-      setLoading(false);
-    });
+    let cancelled = false;
+    (async () => {
+      if (await isDemoSessionActive()) {
+        if (!cancelled) {
+          isDemoRef.current = true;
+          setIsDemo(true);
+          setEmployee(DEMO_EMPLOYEE);
+          setLoading(false);
+        }
+        return;
+      }
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!cancelled && data.session?.user) await loadEmployee(data.session.user.id);
+      } catch {
+        // No live database configured yet. The login screen explains this
+        // and offers Try demo instead of crashing here.
+      }
+      if (!cancelled) setLoading(false);
+    })();
     const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (isDemoRef.current) return;
       if (session?.user) await loadEmployee(session.user.id);
       else setEmployee(null);
     });
-    return () => listener.subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   if (loading) {
@@ -92,18 +134,19 @@ export default function App() {
     );
   }
 
-  if (!employee) return <LoginScreen />;
+  if (!employee) return <LoginScreen onDemoSignIn={enterDemo} />;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.mint }}>
       <View style={{ flex: 1 }}>
-        {view === 'leave-apply' && <LeaveApplyScreen employee={employee} onDone={() => setView('home')} />}
-        {view === 'leaves' && <LeavesScreen employee={employee} onBack={() => setView('home')} />}
-        {view === 'history' && <HistoryScreen employee={employee} />}
+        {view === 'leave-apply' && <LeaveApplyScreen employee={employee} isDemo={isDemo} onDone={() => setView('home')} />}
+        {view === 'leaves' && <LeavesScreen employee={employee} isDemo={isDemo} onBack={() => setView('home')} />}
+        {view === 'history' && <HistoryScreen employee={employee} isDemo={isDemo} />}
         {view === 'home' && (
           <HomeScreen
             employee={employee}
-            onSignOut={() => setEmployee(null)}
+            isDemo={isDemo}
+            onSignOut={() => { void exitDemo(); }}
             onApplyLeave={() => setView('leave-apply')}
             onViewLeaves={() => setView('leaves')}
             onViewHistory={() => setView('history')}

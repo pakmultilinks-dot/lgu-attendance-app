@@ -10,3 +10,4 @@ mobile/node_modules/
 __pycache__/
 .expo/
 dist/
+*.apk

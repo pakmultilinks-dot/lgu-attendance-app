@@ -3,9 +3,9 @@ import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'reac
 import { AppHeader, ErrorBanner, Monogram, shared } from '../components/ui';
 import { FingerprintMark, Icon } from '../components/icons';
 import { colors, radius, shadow, spacing } from '../components/design';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-export default function LoginScreen() {
+export default function LoginScreen({ onDemoSignIn }: { onDemoSignIn: () => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,13 +18,21 @@ export default function LoginScreen() {
       setError('Enter your email and password.');
       return;
     }
+    if (!isSupabaseConfigured) {
+      setError('Sign in is not set up yet. Use Try demo, or ask for the live database to be connected.');
+      return;
+    }
     setBusy(true);
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    });
+    try {
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+      if (authError) setError('Wrong email or password. If this is your first time, ask the Head of Department to create your account.');
+    } catch {
+      setError('Sign in is not set up yet. Use Try demo, or ask for the live database to be connected.');
+    }
     setBusy(false);
-    if (authError) setError('Wrong email or password. If this is your first time, ask the Head of Department to create your account.');
   }
 
   return (
@@ -70,6 +78,17 @@ export default function LoginScreen() {
             {busy ? <ActivityIndicator color="#fff" /> : <Text style={shared.buttonText}>Sign In</Text>}
           </TouchableOpacity>
           {error ? <ErrorBanner text={error} /> : null}
+          <View style={local.demoDivider}>
+            <View style={local.demoLine} />
+            <Text style={local.demoDividerText}>or</Text>
+            <View style={local.demoLine} />
+          </View>
+          <TouchableOpacity style={shared.secondaryButton} onPress={onDemoSignIn} activeOpacity={0.7}>
+            <Text style={shared.secondaryButtonText}>Try demo, no account needed</Text>
+          </TouchableOpacity>
+          <Text style={local.demoNote}>
+            Demo opens as Ahmed Khan, with sample attendance already in the app. Demo stays on this phone. Nothing is sent to the office.
+          </Text>
         </View>
         <View style={local.securityCard}>
         <View style={local.securityMark}>
@@ -91,6 +110,10 @@ const local = {
   brandRule: { width: 48, height: 3, backgroundColor: colors.gold, borderRadius: 2, marginTop: spacing.sm },
   heading: { fontSize: 20, fontWeight: '800' as const, color: colors.ink, lineHeight: 26, marginBottom: spacing.md },
   fieldLabel: { fontSize: 13, fontWeight: '700' as const, color: colors.ink, marginBottom: 6, marginTop: 2 },
+  demoDivider: { flexDirection: 'row' as const, alignItems: 'center' as const, marginTop: spacing.md, marginBottom: 2 },
+  demoLine: { flex: 1, height: 1, backgroundColor: colors.sageBorder },
+  demoDividerText: { color: colors.muted, fontSize: 13, fontWeight: '700' as const, marginHorizontal: spacing.sm },
+  demoNote: { color: colors.muted, fontSize: 13, lineHeight: 19, textAlign: 'center' as const, marginTop: spacing.sm },
   securityCard: {
     flexDirection: 'row' as const, alignItems: 'flex-start' as const, backgroundColor: colors.sage,
     borderRadius: radius.card, padding: spacing.md, ...shadow.card,
