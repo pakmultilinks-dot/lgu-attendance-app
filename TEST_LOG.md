@@ -209,3 +209,33 @@ it into view before the shot.
 Still not tested: fingerprint accept and real GPS at the office door
 need a real phone, which needs the next APK build. No EAS build, no
 GitHub push, no publish was done in this task.
+
+## 8. Login screen fix, 5 November 2026 (Try demo was unreachable)
+
+The user reported on his real phone that the login screen did not
+scroll, so Sign In and Try demo below the Password field could not be
+reached at all. Root cause: the Login screen was a plain View with no
+ScrollView, and it stacked the full AppHeader plus a second 76px brand
+block, so the buttons sat below the fold. The web test had not caught
+it because the browser page itself scrolls.
+
+Fix, in `mobile/src/screens/Login.tsx` only: slim header, duplicate
+brand block removed, security card removed from the login screen,
+fingerprint mark 44 to 28px, heading 20 to 17px, compact inputs and
+buttons, wrapped in a real ScrollView as a fallback. Home and Leave
+Apply already used ScrollView and were not changed.
+
+| Check | Result |
+|---|---|
+| Mobile TypeScript typecheck | Pass, 0 errors. |
+| Core logic tests (`node tests/logic-tests.mjs`) | 43 passed, 0 failed. |
+| Excel builder tests (`npx vitest run src/lib/excel.test.ts`) | 6 passed, 0 failed. |
+| Demo E2E (`python3 tests/e2e-screenshots-demo.py`) | 13 checks, 0 failed, no console errors. Two new viewport checks: Try demo button bottom at 431px on load at 390x844 and at 390x700, no scroll needed. Scroll fallback checked at 390x500: button reachable by scrolling. |
+| Em-dash scan over changed files and docs | 0 matches. |
+
+Screenshots: `screenshots-demo/demo-login-button.png` (overwritten with
+the fixed screen) and `screenshots-demo/demo-login-700.png` (new).
+
+Still not tested: fingerprint accept and real GPS at the office door
+need a real phone, which needs the next APK build. No EAS build, no
+GitHub push, no publish was done in this task.

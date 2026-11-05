@@ -82,6 +82,17 @@ def main():
             page.goto(MOBILE_URL)
             wait_text(page, "Sign in with your department account", timeout=20000)
             wait_text(page, "Try demo, no account needed")
+            # Login bug fix check: Try demo must be in the viewport on
+            # load, with no scrolling, at 390x844. The old screen was a
+            # plain View with no scroll, so the button sat below the fold
+            # and was unreachable on a real phone.
+            box = page.get_by_text("Try demo, no account needed", exact=True).bounding_box()
+            if box and box["y"] + box["height"] <= 844:
+                log("Try demo visible on load, no scroll, 390x844", "PASS",
+                    f"button bottom {box['y'] + box['height']:.0f}px of 844px, top {box['y']:.0f}px")
+            else:
+                log("Try demo visible on load, no scroll, 390x844", "FAIL",
+                    f"button box: {box}")
             shot(page, "demo-login-button.png")
             log("login shows Try demo button", "PASS",
                 "Try demo, no account needed, below Sign In")
@@ -184,6 +195,25 @@ def main():
             wait_text(page, "Try demo, no account needed")
             log("demo sign out returns to login", "PASS",
                 "back on the sign in screen, Try demo offered again")
+
+            # 9. Short phone: Try demo visible on load at 390x700 too.
+            ctx700 = browser.new_context(
+                viewport={"width": 390, "height": 700},
+                geolocation=OFFICE_GEO,
+                permissions=["geolocation"],
+            )
+            page700 = ctx700.new_page()
+            page700.goto(MOBILE_URL)
+            wait_text(page700, "Try demo, no account needed", timeout=20000)
+            box700 = page700.get_by_text("Try demo, no account needed", exact=True).bounding_box()
+            if box700 and box700["y"] + box700["height"] <= 700:
+                log("Try demo visible on load, no scroll, 390x700", "PASS",
+                    f"button bottom {box700['y'] + box700['height']:.0f}px of 700px")
+            else:
+                log("Try demo visible on load, no scroll, 390x700", "FAIL",
+                    f"button box: {box700}")
+            shot(page700, "demo-login-700.png")
+            ctx700.close()
 
             if errors:
                 log("mobile console errors", "CHECK", "; ".join(errors[:5]))

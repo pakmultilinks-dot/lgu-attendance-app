@@ -66,6 +66,30 @@ account needed" below Sign In. No password, no account, no network.
 - Demo E2E (`tests/e2e-screenshots-demo.py`): 11 checks, 0 failed.
   Screenshots in `screenshots-demo/`. Full detail in `SPEC.md`.
 
+## Login screen fix, 5 November 2026 (Try demo was unreachable)
+
+The user reported the real bug on his phone: the login screen did not
+scroll, so Sign In and Try demo below the Password field could not be
+reached at all. He was right, the web test had not caught it. Root
+cause: the Login screen was a plain View with no ScrollView, and it
+stacked the full AppHeader (56px top padding) plus a second 76px
+brand block, so the buttons sat below the fold.
+
+Fixed in `mobile/src/screens/Login.tsx` only: slim header (34px
+monogram, one line title, no motto), duplicate brand block removed,
+security card removed from the login screen, fingerprint mark 44 to
+28px, heading 20 to 17px, compact inputs and buttons. The whole
+login now fits in about 480px tall, so Try demo is in view on load
+with no scrolling at 390x844 and at 390x700, and the screen is also
+wrapped in a real ScrollView as a fallback. Home and Leave Apply
+already used ScrollView and were not changed. Verified: Try demo
+button bottom at 431px on load at both 390x844 and 390x700, and
+reachable by scrolling at 390x500. Demo E2E now 13 checks, 0 failed,
+including the two new viewport checks. Screenshots
+`screenshots-demo/demo-login-button.png` (overwritten with the fixed
+screen) and `screenshots-demo/demo-login-700.png` (new). This fix
+ships with the next APK build, not yet built or pushed.
+
 ## Tests (run before any build)
 
 ```bash

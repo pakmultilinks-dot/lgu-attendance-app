@@ -450,3 +450,31 @@ The user approved a rebuild explicitly, so demo mode could reach his phone.
 - Local file: LGU-Attendance-App-v2-demo.apk (gitignored, not committed).
 
 Live limits, unchanged: real sign-in does NOT work live, no live Supabase project exists. Demo login works offline on the phone with no account. To make real sign-in live: create a free Supabase project, run supabase/schema.sql then supabase/seed.sql, set the real EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in the EAS preview env, rebuild. Fingerprint accept and real GPS at the office door still need a real-phone test. No Play Store publish.
+
+## Login screen fix, 5 November 2026 (Try demo was unreachable)
+
+The user reported the real bug on his phone: the login screen did not
+scroll, so Sign In and Try demo below the Password field could not be
+reached at all. He was right, the web test had not caught it. Root
+cause: the Login screen was a plain View with no ScrollView, and it
+stacked the full AppHeader (56px top padding) plus a second 76px
+brand block, so the buttons sat below the fold.
+
+Fixed in `mobile/src/screens/Login.tsx` only: slim header (34px
+monogram, one line title, no motto), duplicate brand block removed,
+security card removed from the login screen, fingerprint mark 44 to
+28px, heading 20 to 17px, compact inputs and buttons. The whole
+login now fits in about 480px tall, so Try demo is in view on load
+with no scrolling at 390x844 and at 390x700, and the screen is also
+wrapped in a real ScrollView as a fallback. Home and Leave Apply
+already used ScrollView and were not changed. Demo login logic and
+real sign in logic are untouched.
+
+Verified: mobile typecheck 0 errors, logic tests 43 passed, Excel
+tests 6 passed, demo E2E 13 checks 0 failed including the two new
+viewport checks (Try demo button bottom at 431px on load at 390x844
+and at 390x700), plus a scroll fallback check at 390x500. New
+screenshots `screenshots-demo/demo-login-button.png` (overwritten
+with the fixed screen) and `screenshots-demo/demo-login-700.png`.
+This fix is local only. No EAS build, no GitHub push, no publish was
+done in this task. It ships with the next APK build.
