@@ -517,8 +517,20 @@ Approved 5 November 2026, 21:28 PKT.
   fingerprint sensor, so the ON check proves the GPS gate is skipped
   and the biometric gate still refuses; a real fingerprint accept
   still needs a real phone.
-- Still NOT done: no EAS build, no GitHub push, no publish. The next
-  build (APK v4) ships this test mode.
+- Still NOT done: no Play Store publish. Real sign-in still needs a live Supabase project. A real fingerprint accept still needs a real phone.
+
+## APK build v4 with demo test mode (2026-11-05)
+
+The user approved the test mode explicitly, as a continuation of the demo login rebuild.
+
+- Commit: 7156968 "Add demo test mode: check in from home in demo, GPS skipped, fingerprint still required" (11 files, pushed to main, verified live on GitHub, commit page HTTP 200).
+- EAS project: @kominman/lgu-attendance, ID f7a0ea5a-f432-4eb6-8b01-07d80f0854af
+- Build 6 0506824e-1a68-4c93-902d-46ec42736bae FINISHED, app 1.0.0, SDK 52.0.0, APK 59 MB, no build errors. The build sat in the EAS free queue about 52 minutes before starting, then finished in about 4 minutes.
+- APK download (Expo): https://expo.dev/artifacts/eas/lFNdUVSf6CQ6Q25y6AsGMe9z-VpYnJl8pc3rmkp5b8w.apk
+- Build page: https://expo.dev/accounts/kominman/projects/lgu-attendance/builds/0506824e-1a68-4c93-902d-46ec42736bae
+- Direct download link: pending, not yet created. The Muse storage upload needs an approval card and the approval timed out before the upload ran (approval_expired, nothing was uploaded). Re-run the upload to get a direct link.
+- Verified: downloaded 59 MB, file confirms Android package, JS bundle (1.5 MB) contains "Test mode" (2 occurrences), "Try demo" (2 occurrences) and "Ahmed Khan". SHA256: 2f2d47ad47c7673041e7f2474f3b1f4eba1a86795011fa90e665730cefa1f9ee
+- Local file: LGU-Attendance-App-v4-test-mode.apk (gitignored, not committed).
 
 ## Login screen fix, 5 November 2026 (Try demo was unreachable)
 

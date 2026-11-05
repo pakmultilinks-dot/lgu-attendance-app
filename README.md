@@ -270,6 +270,14 @@ That produces an APK download link to share with staff. No EAS build was run as 
 - Fix: slim login header, no duplicate brand block, whole login about 480px tall, Try demo visible on load at 390x844 and 390x700 with no scroll, ScrollView fallback. SHA256: 685bc1d6800d9eee6cfa3b2759a51f74932c0137149007c7d1812f47c9aacb7f
 - On the phone, open the app and tap "Try demo, no account needed" to sign in as Ahmed Khan, EX-001, offline. Real sign-in still needs a live Supabase project, see SPEC.md.
 
+## APK build v4 with demo test mode (2026-11-05)
+
+- Commit 7156968, EAS build 6 0506824e-1a68-4c93-902d-46ec42736bae FINISHED, APK 59 MB.
+- Expo APK: https://expo.dev/artifacts/eas/lFNdUVSf6CQ6Q25y6AsGMe9z-VpYnJl8pc3rmkp5b8w.apk
+- Direct download: pending. The Muse storage upload needs an approval card and it timed out before the upload ran, so no direct link exists yet. Re-run the upload to get one.
+- Fix: demo test mode. On the demo Today screen, turn on "Test mode, check in from anywhere" and check in from home with fingerprint, GPS check skipped. SHA256: 2f2d47ad47c7673041e7f2474f3b1f4eba1a86795011fa90e665730cefa1f9ee
+- On the phone, open the app and tap "Try demo, no account needed" to sign in as Ahmed Khan, EX-001, offline. Real sign-in still needs a live Supabase project, see SPEC.md.
+
 ## Daily use
 
 - Employee: open app, tap Check In on arrival, tap Check Out on leaving. Fingerprint each time. To take leave, use Apply for Leave in the app, then check My Leaves for the HOD decision.
