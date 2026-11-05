@@ -1,1 +1,46 @@
-{"expo":{"android":{"package":"edu.lgu.attendance","permissions":["ACCESS_FINE_LOCATION","ACCESS_COARSE_LOCATION","USE_BIOMETRIC","USE_FINGERPRINT"]},"icon":"./assets/icon.png","ios":{"bundleIdentifier":"edu.lgu.attendance","infoPlist":{"NSFaceIDUsageDescription":"Face ID or fingerprint confirms it is you checking in, on your own phone.","NSLocationWhenInUseUsageDescription":"Your location is checked only when you tap Check In or Check Out, to confirm you are inside the office."}},"name":"LGU Attendance","orientation":"portrait","plugins":["expo-location","expo-local-authentication"],"scheme":"lgu-attendance","slug":"lgu-attendance","splash":{"backgroundColor":"#0B6E3A","image":"./assets/splash.png","resizeMode":"contain"},"userInterfaceStyle":"light","version":"1.0.0"}}
+{
+  "expo": {
+    "android": {
+      "package": "edu.lgu.attendance",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
+    },
+    "icon": "./assets/icon.png",
+    "ios": {
+      "bundleIdentifier": "edu.lgu.attendance",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Face ID or fingerprint confirms it is you checking in, on your own phone.",
+        "NSLocationWhenInUseUsageDescription": "Your location is checked only when you tap Check In or Check Out, to confirm you are inside the office."
+      }
+    },
+    "name": "LGU Attendance",
+    "orientation": "portrait",
+    "plugins": [
+      "expo-location",
+      "expo-local-authentication"
+    ],
+    "scheme": "lgu-attendance",
+    "slug": "lgu-attendance",
+    "splash": {
+      "backgroundColor": "#0B6E3A",
+      "image": "./assets/splash.png",
+      "resizeMode": "contain"
+    },
+    "userInterfaceStyle": "light",
+    "version": "1.0.0",
+    "extra": {
+      "eas": {
+        "projectId": "f7a0ea5a-f432-4eb6-8b01-07d80f0854af"
+      }
+    },
+    "owner": "kominman"
+  }
+}
