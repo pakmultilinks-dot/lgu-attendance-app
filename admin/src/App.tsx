@@ -120,7 +120,7 @@ export default function App() {
   if (!session) return <Login />;
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/lgu-attendance-app">
       <Shell isHod={isHod} hodName={hodName} />
     </BrowserRouter>
   );
