@@ -239,3 +239,42 @@ the fixed screen) and `screenshots-demo/demo-login-700.png` (new).
 Still not tested: fingerprint accept and real GPS at the office door
 need a real phone, which needs the next APK build. No EAS build, no
 GitHub push, no publish was done in this task.
+
+## 9. Demo test mode, 5 November 2026 (check in from home, demo only)
+
+The user tested APK v3 on his phone: demo login worked, but check in
+was correctly blocked at 4053 m from the office while he was at home.
+He approved a demo-only test mode on 5 November 2026, 21:28 PKT, so he
+can test fingerprint check in from home.
+
+Change, in `mobile/src/lib/demo.ts` and `mobile/src/screens/Home.tsx`
+only: a gold switch box on the demo Today screen, above the fingerprint
+button, "Test mode, check in from anywhere", with the note "Demo only,
+for testing at home. Real check in still needs 100 m at the office."
+When ON it shows "Test mode is ON. GPS check skipped for this demo
+test. Fingerprint is still required." The switch defaults to OFF and
+persists in AsyncStorage (`lgu_demo_test_mode_v1`). When ON in demo,
+Check In and Check Out skip the GPS step entirely and read no location,
+but still run the real phone fingerprint prompt, and a passed check in
+is recorded with location verified No and no distance. The live flow in
+`mobile/src/lib/attendance.ts` has no test mode parameter and always
+runs the 100 m check; Home passes test mode only to the demo functions.
+The E2E harness has a source guard for that.
+
+| Check | Result |
+|---|---|
+| Mobile TypeScript typecheck | Pass, 0 errors. |
+| Core logic tests (`node tests/logic-tests.mjs`) | 43 passed, 0 failed. |
+| Excel builder tests (`npx vitest run src/lib/excel.test.ts`) | 6 passed, 0 failed. |
+| Demo E2E (`python3 tests/e2e-screenshots-demo.py`) | 21 checks, 0 failed, no console errors. 8 new test mode checks at a simulated home location about 4 km north of the office (31.5004, 74.4427, E2E measured 4047 m there; the user's phone reported 4053 m from his real home): switch visible on load with no scroll (label bottom 450px at 390x844), defaults OFF, OFF blocks with the distance message and writes nothing, ON shows the note, ON skips GPS and the biometric step refuses instead (no sensor on this VM) and writes nothing, setting persists after reload, no switch outside demo, source guard proves the live flow cannot use test mode. |
+| Em-dash scan over changed files and docs | 0 matches. |
+
+Screenshots: `screenshots-demo/demo-test-mode-on.png`,
+`screenshots-demo/demo-test-mode-off-blocked.png` and
+`screenshots-demo/demo-test-mode-biometric.png` (all real PNGs, verified
+by reading them; the two error screenshots scroll the banner into view
+before the shot).
+
+Still not tested: a real fingerprint accept in test mode needs a real
+phone, which needs the next APK build (v4). No EAS build, no GitHub
+push, no publish was done in this task.

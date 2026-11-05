@@ -55,7 +55,8 @@ account needed" below Sign In. No password, no account, no network.
   demo data is never confused with live data.
 - Fingerprint is not faked: demo check in runs the real GPS radius check
   and then the real phone fingerprint prompt. On a phone with no sensor
-  it says so and writes nothing.
+  it says so and writes nothing. Demo test mode (below) skips only the
+  GPS step, never the fingerprint step.
 - What does NOT happen in demo: nothing is sent to any server, nothing
   is synced to the office, and the HOD never sees demo data. Demo data
   is left behind when a real account signs in, never merged.
@@ -63,7 +64,7 @@ account needed" below Sign In. No password, no account, no network.
   is connected. Until then it shows "Sign in is not set up yet. Use Try
   demo, or ask for the live database to be connected." instead of
   crashing. No password is stored anywhere in the code for demo login.
-- Demo E2E (`tests/e2e-screenshots-demo.py`): 11 checks, 0 failed.
+- Demo E2E (`tests/e2e-screenshots-demo.py`): 21 checks, 0 failed.
   Screenshots in `screenshots-demo/`. Full detail in `SPEC.md`.
 
 ## Login screen fix, 5 November 2026 (Try demo was unreachable)
@@ -89,6 +90,43 @@ including the two new viewport checks. Screenshots
 `screenshots-demo/demo-login-button.png` (overwritten with the fixed
 screen) and `screenshots-demo/demo-login-700.png` (new). This fix
 ships with the next APK build, not yet built or pushed.
+
+## Demo test mode, 5 November 2026 (check in from home, demo only)
+
+The user tested APK v3 on his phone and demo login worked, but check in
+was correctly blocked because he was 4053 m from the office at home,
+outside the 100 m rule. He asked for a way to test fingerprint check in
+from home. Approved 5 November 2026, 21:28 PKT.
+
+On the demo Today screen, above the fingerprint button, a gold box holds
+a switch: "Test mode, check in from anywhere", with the note "Demo
+only, for testing at home. Real check in still needs 100 m at the
+office." The switch is visible on load with no scrolling (label bottom
+at 450px at 390x844). It defaults to OFF and the setting persists in
+AsyncStorage (`lgu_demo_test_mode_v1`) across reloads.
+
+- Test mode OFF: exactly the old behaviour. GPS 100 m check first, then
+  fingerprint. At home it refuses with "You are X metres from the
+  office. Check in works only within 100 metres."
+- Test mode ON, demo only: the GPS step is skipped entirely, no location
+  is read at all, but the real phone fingerprint prompt still runs. A
+  failed fingerprint, or a phone with no sensor, still writes nothing.
+  A passed fingerprint writes a demo check in/out record marked honestly
+  with location verified No and no distance, and the success message
+  says the GPS check was skipped.
+- Real sign in has no test mode and no switch. The live flow in
+  `mobile/src/lib/attendance.ts` has no test mode parameter and always
+  runs the 100 m check. Home passes test mode only to the demo
+  functions, never to the live ones. There is no backdoor.
+- Leave apply and history are unchanged, they already worked in demo.
+- Verified: mobile typecheck 0 errors, logic tests 43 passed, Excel
+  tests 6 passed, demo E2E now 21 checks, 0 failed, no console errors,
+  including 8 new test mode checks. Screenshots
+  `screenshots-demo/demo-test-mode-on.png`,
+  `screenshots-demo/demo-test-mode-off-blocked.png` and
+  `screenshots-demo/demo-test-mode-biometric.png`. This ships with the
+  next APK build, not yet built or pushed. A real fingerprint accept on
+  a real phone still needs that build and a phone test.
 
 ## Tests (run before any build)
 

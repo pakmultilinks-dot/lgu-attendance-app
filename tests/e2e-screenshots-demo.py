@@ -196,7 +196,127 @@ def main():
             log("demo sign out returns to login", "PASS",
                 "back on the sign in screen, Try demo offered again")
 
-            # 9. Short phone: Try demo visible on load at 390x700 too.
+            # 9. Demo test mode: OFF blocks at home, ON skips GPS only.
+            # Far location is the user's home, about 4 km north of the
+            # office pin (31.5004, 74.4427), the same area his phone
+            # reported as 4053 m away on 2026-11-05. A fresh context means fresh demo
+            # storage, so today starts unchecked here too.
+            HOME_GEO = {"latitude": 31.5004, "longitude": 74.4427}
+            ctx2 = browser.new_context(
+                viewport={"width": 390, "height": 844},
+                geolocation=HOME_GEO,
+                permissions=["geolocation"],
+            )
+            page2 = ctx2.new_page()
+            page2.goto(MOBILE_URL)
+            wait_text(page2, "Try demo, no account needed", timeout=20000)
+            page2.get_by_text("Try demo, no account needed", exact=True).click()
+            wait_text(page2, "Ahmed Khan")
+            wait_text(page2, "Test mode, check in from anywhere")
+            label_box = page2.get_by_text("Test mode, check in from anywhere", exact=True).bounding_box()
+            if label_box and label_box["y"] + label_box["height"] <= 844:
+                log("test mode switch visible on load, no scroll, 390x844", "PASS",
+                    f"switch label bottom {label_box['y'] + label_box['height']:.0f}px of 844px")
+            else:
+                log("test mode switch visible on load, no scroll, 390x844", "FAIL",
+                    f"switch label box: {label_box}")
+            switch2 = page2.locator('[data-testid="demo-test-mode-switch"]')
+            switch_input = switch2.locator("input").first
+            if switch_input.count() and not switch_input.is_checked():
+                log("test mode defaults to OFF", "PASS", "switch unchecked on first open in demo")
+            elif switch_input.count():
+                log("test mode defaults to OFF", "FAIL", "switch was already on in a fresh demo")
+            else:
+                log("test mode defaults to OFF", "CHECK", "could not read switch input state, label is shown")
+
+            def demo_has_today_record(p):
+                return p.evaluate(
+                    """() => {
+                      const raw = localStorage.getItem('lgu_demo_state_v1');
+                      if (!raw) return false;
+                      const today = new Date().toLocaleDateString('en-CA', {timeZone: 'Asia/Karachi'});
+                      return JSON.parse(raw).records.some(r => r.work_date === today);
+                    }"""
+                )
+
+            # 9a. Test mode OFF at home: GPS blocks, nothing written.
+            page2.get_by_text("Check In with Fingerprint", exact=True).click()
+            page2.wait_for_timeout(2500)
+            body2 = page2.locator("body").inner_text()
+            if "metres from the office" in body2 and not demo_has_today_record(page2):
+                page2.get_by_text("metres from the office").first.scroll_into_view_if_needed(timeout=5000)
+                page2.wait_for_timeout(500)
+                shot(page2, "demo-test-mode-off-blocked.png")
+                log("test mode OFF blocks check in at home", "PASS",
+                    "distance message shown (about 4 km), no check-in row written")
+            else:
+                shot(page2, "demo-test-mode-off-blocked.png")
+                log("test mode OFF blocks check in at home", "FAIL",
+                    f"body: {body2[:200]}")
+
+            # 9b. Turn test mode ON: switch stays on, note appears.
+            switch2.click()
+            wait_text(page2, "Test mode is ON")
+            wait_text(page2, "GPS check skipped for this demo test")
+            shot(page2, "demo-test-mode-on.png")
+            log("test mode switch turns ON with a clear note", "PASS",
+                "Test mode is ON, GPS check skipped, fingerprint still required")
+
+            # 9c. Test mode ON at home: GPS is skipped, the fingerprint
+            # step is what refuses. This VM has no sensor, so the honest
+            # result is the sensor message and no check-in written. A
+            # real phone with a sensor completes the check in here.
+            page2.get_by_text("Check In with Fingerprint", exact=True).click()
+            page2.wait_for_timeout(2500)
+            body2 = page2.locator("body").inner_text()
+            if "no fingerprint or face sensor" in body2.lower() and "metres from the office" not in body2 and not demo_has_today_record(page2):
+                page2.get_by_text("no fingerprint or face sensor").first.scroll_into_view_if_needed(timeout=5000)
+                page2.wait_for_timeout(500)
+                shot(page2, "demo-test-mode-biometric.png")
+                log("test mode ON skips GPS, biometric still gates check in", "PASS",
+                    "no distance message, sensor refusal instead, no check-in written")
+            else:
+                shot(page2, "demo-test-mode-biometric.png")
+                log("test mode ON skips GPS, biometric still gates check in", "FAIL",
+                    f"body: {body2[:200]}")
+
+            # 9d. Test mode persists across reload, still demo only.
+            page2.reload()
+            wait_text(page2, "Ahmed Khan", timeout=20000)
+            wait_text(page2, "Test mode is ON")
+            log("test mode setting persists after reload", "PASS",
+                "still ON after reload, stored in AsyncStorage on the phone")
+
+            # 9e. No test mode outside demo: sign out, login has no switch.
+            page2.get_by_text("Sign out", exact=True).click()
+            wait_text(page2, "Try demo, no account needed")
+            body2 = page2.locator("body").inner_text()
+            if "Test mode, check in from anywhere" not in body2:
+                log("test mode switch does not appear outside demo", "PASS",
+                    "login screen shows no test mode switch")
+            else:
+                log("test mode switch does not appear outside demo", "FAIL",
+                    "test mode text found on the login screen")
+            ctx2.close()
+
+            # 9f. Static guard: the live flow cannot use test mode. The
+            # real check in/out in mobile/src/lib/attendance.ts must not
+            # mention test mode at all, and Home must pass testMode only
+            # to the demo functions, never to doCheckIn/doCheckOut.
+            attendance_src = open(os.path.join(BASE, "mobile/src/lib/attendance.ts")).read()
+            home_src = open(os.path.join(BASE, "mobile/src/screens/Home.tsx")).read()
+            if "testMode" not in attendance_src and "DEMO_TEST_MODE" not in attendance_src:
+                if "doCheckIn(s)" in home_src and "doCheckOut(s)" in home_src and "demoCheckIn(s, { testMode })" in home_src:
+                    log("real mode cannot use test mode (source guard)", "PASS",
+                        "attendance.ts has no test mode, Home passes testMode only to demoCheckIn/demoCheckOut")
+                else:
+                    log("real mode cannot use test mode (source guard)", "FAIL",
+                        "Home call sites do not match the expected demo-only wiring")
+            else:
+                log("real mode cannot use test mode (source guard)", "FAIL",
+                    "attendance.ts mentions test mode")
+
+            # 10. Short phone: Try demo visible on load at 390x700 too.
             ctx700 = browser.new_context(
                 viewport={"width": 390, "height": 700},
                 geolocation=OFFICE_GEO,

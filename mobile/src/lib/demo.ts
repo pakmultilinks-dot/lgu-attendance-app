@@ -13,6 +13,15 @@
 // and demo leave requests live only in AsyncStorage on this phone.
 // Once the live Supabase project is connected, the user signs in with
 // the real account and demo data is left behind, never merged.
+//
+// Demo test mode: a demo-only switch on the Today screen that skips the
+// GPS distance check so the user can test fingerprint check in from
+// home. It never touches real sign in: the live flow in
+// mobile/src/lib/attendance.ts has no test mode parameter and always
+// runs the 100 m check. Test mode records are marked honestly with
+// location_verified false and no distance, and the success message says
+// the GPS check was skipped. The fingerprint prompt still runs in test
+// mode, and a failed or missing sensor still writes nothing.
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AttendanceRecord, Employee, LeaveRequest, LeaveType, OfficeSettings } from './supabase';
@@ -23,6 +32,27 @@ import type { AttendanceActionResult } from './attendance';
 
 export const DEMO_STORAGE_KEY = 'lgu_demo_state_v1';
 export const DEMO_SESSION_KEY = 'lgu_demo_active_v1';
+export const DEMO_TEST_MODE_KEY = 'lgu_demo_test_mode_v1';
+
+// Demo test mode is stored separately from demo attendance data, and it
+// defaults to OFF. It is only ever read by the demo flow; the live flow
+// never reads this key.
+export async function isDemoTestModeEnabled(): Promise<boolean> {
+  try {
+    return (await AsyncStorage.getItem(DEMO_TEST_MODE_KEY)) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export async function setDemoTestModeEnabled(enabled: boolean): Promise<void> {
+  try {
+    if (enabled) await AsyncStorage.setItem(DEMO_TEST_MODE_KEY, '1');
+    else await AsyncStorage.removeItem(DEMO_TEST_MODE_KEY);
+  } catch {
+    // A failed write just leaves the switch where it was.
+  }
+}
 
 export const DEMO_EMPLOYEE: Employee = {
   id: 'demo-employee-ahmed',
@@ -257,9 +287,18 @@ export async function demoApplyLeave(input: {
 // fingerprint, then write the record locally. Nothing is faked: if the
 // phone has no fingerprint sensor, authenticateEmployee refuses and no
 // record is written. If GPS is outside the radius, it refuses too.
-export async function demoCheckIn(settings: OfficeSettings): Promise<AttendanceActionResult> {
-  const location = await checkOfficeLocation(settings);
-  if (!location.ok) return { ok: false, message: location.message };
+// The only exception is demo test mode (opts.testMode true): the GPS
+// step is skipped entirely, no location is read at all, but the
+// fingerprint step still runs and the record is marked
+// location_verified false with no distance, so a test check in can
+// never pass as an office check in.
+export async function demoCheckIn(
+  settings: OfficeSettings,
+  opts?: { testMode?: boolean },
+): Promise<AttendanceActionResult> {
+  const testMode = opts?.testMode === true;
+  const location = testMode ? null : await checkOfficeLocation(settings);
+  if (!testMode && location && !location.ok) return { ok: false, message: location.message };
   const bio = await authenticateEmployee();
   if (!bio.ok) return { ok: false, message: bio.message };
   const state = await loadDemoState();
@@ -278,18 +317,28 @@ export async function demoCheckIn(settings: OfficeSettings): Promise<AttendanceA
     check_out_at: null,
     status,
     total_hours: null,
-    location_verified: true,
-    check_in_distance_meters: location.distanceMeters,
+    location_verified: testMode ? false : true,
+    check_in_distance_meters: testMode ? null : (location?.distanceMeters ?? null),
     leave_type: null,
   };
   state.records.unshift(record);
   await saveDemoState(state);
-  return { ok: true, message: 'Checked in. Have a good day. Demo only, nothing sent to the office.', record };
+  return {
+    ok: true,
+    message: testMode
+      ? 'Checked in. Test mode, GPS check skipped, fingerprint verified on this phone. Demo only, nothing sent to the office.'
+      : 'Checked in. Have a good day. Demo only, nothing sent to the office.',
+    record,
+  };
 }
 
-export async function demoCheckOut(settings: OfficeSettings): Promise<AttendanceActionResult> {
-  const location = await checkOfficeLocation(settings);
-  if (!location.ok) return { ok: false, message: location.message };
+export async function demoCheckOut(
+  settings: OfficeSettings,
+  opts?: { testMode?: boolean },
+): Promise<AttendanceActionResult> {
+  const testMode = opts?.testMode === true;
+  const location = testMode ? null : await checkOfficeLocation(settings);
+  if (!testMode && location && !location.ok) return { ok: false, message: location.message };
   const bio = await authenticateEmployee();
   if (!bio.ok) return { ok: false, message: bio.message };
   const state = await loadDemoState();
@@ -301,5 +350,11 @@ export async function demoCheckOut(settings: OfficeSettings): Promise<Attendance
   record.check_out_at = nowIsoPKT();
   record.total_hours = totalHoursBetween(record.check_in_at, record.check_out_at);
   await saveDemoState(state);
-  return { ok: true, message: 'Checked out. See you tomorrow. Demo only, nothing sent to the office.', record };
+  return {
+    ok: true,
+    message: testMode
+      ? 'Checked out. Test mode, GPS check skipped, fingerprint verified on this phone. Demo only, nothing sent to the office.'
+      : 'Checked out. See you tomorrow. Demo only, nothing sent to the office.',
+    record,
+  };
 }

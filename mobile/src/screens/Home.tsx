@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { AppHeader, EmptyState, ErrorBanner, ProgressBar, StatusPill, SuccessBanner, shared } from '../components/ui';
 import { FingerprintMark, Icon, type IconName } from '../components/icons';
 import { displayName } from '../lib/supabase';
@@ -7,7 +7,7 @@ import { colors, radius, shadow, spacing } from '../components/design';
 import { supabase, type AttendanceRecord, type Employee, type OfficeSettings } from '../lib/supabase';
 import { doCheckIn, doCheckOut, formatDate, formatTime, loadHistory, loadOfficeSettings, loadTodayRecord } from '../lib/attendance';
 import { loadLeaveBalance } from '../lib/leaves';
-import { DEMO_SETTINGS, demoCheckIn, demoCheckOut, demoLoadHistory, demoLoadLeaveBalance, demoLoadTodayRecord } from '../lib/demo';
+import { DEMO_SETTINGS, demoCheckIn, demoCheckOut, demoLoadHistory, demoLoadLeaveBalance, demoLoadTodayRecord, isDemoTestModeEnabled, setDemoTestModeEnabled } from '../lib/demo';
 
 function initialsOf(fullName: string): string {
   // displayName already strips any seed tag, so initials come from the
@@ -52,11 +52,15 @@ export default function HomeScreen({ employee, isDemo, onSignOut, onApplyLeave, 
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  // Demo test mode only exists in demo. It is never set, read or passed
+  // in the real sign in flow, so real check in always enforces 100 m.
+  const [testMode, setTestMode] = useState(false);
 
   async function refresh() {
     try {
       if (isDemo) {
         setSettings(DEMO_SETTINGS);
+        setTestMode(await isDemoTestModeEnabled());
         setToday(await demoLoadTodayRecord());
         setHistory(await demoLoadHistory(14));
         setBalance(await demoLoadLeaveBalance());
@@ -82,7 +86,7 @@ export default function HomeScreen({ employee, isDemo, onSignOut, onApplyLeave, 
     const s = isDemo ? DEMO_SETTINGS : settings;
     if (!s) return;
     setBusy(true); setMessage(''); setError('');
-    const result = isDemo ? await demoCheckIn(s) : await doCheckIn(s);
+    const result = isDemo ? await demoCheckIn(s, { testMode }) : await doCheckIn(s);
     setBusy(false);
     if (result.ok) { setMessage(result.message); await refresh(); }
     else setError(result.message);
@@ -92,10 +96,17 @@ export default function HomeScreen({ employee, isDemo, onSignOut, onApplyLeave, 
     const s = isDemo ? DEMO_SETTINGS : settings;
     if (!s) return;
     setBusy(true); setMessage(''); setError('');
-    const result = isDemo ? await demoCheckOut(s) : await doCheckOut(s);
+    const result = isDemo ? await demoCheckOut(s, { testMode }) : await doCheckOut(s);
     setBusy(false);
     if (result.ok) { setMessage(result.message); await refresh(); }
     else setError(result.message);
+  }
+
+  async function onToggleTestMode(value: boolean) {
+    setTestMode(value);
+    await setDemoTestModeEnabled(value);
+    setMessage('');
+    setError(value ? '' : 'Test mode off. Check in needs 100 m at the office again.');
   }
 
   const checkInDisabled = busy || checkedIn || onLeaveToday || !settings;
@@ -178,6 +189,32 @@ export default function HomeScreen({ employee, isDemo, onSignOut, onApplyLeave, 
             <Text style={{ fontSize: 15, color: colors.ink }}>You have not checked in yet today.</Text>
           )}
 
+          {isDemo ? (
+            <View style={local.testModeBox} testID="demo-test-mode-box">
+              <View style={local.testModeRow}>
+                <View style={{ flex: 1, marginRight: 12 }}>
+                  <Text style={local.testModeLabel}>Test mode, check in from anywhere</Text>
+                  <Text style={local.testModeNote}>
+                    Demo only, for testing at home. Real check in still needs 100 m at the office.
+                  </Text>
+                </View>
+                <Switch
+                  testID="demo-test-mode-switch"
+                  accessibilityLabel="Test mode, check in from anywhere"
+                  value={testMode}
+                  onValueChange={onToggleTestMode}
+                  trackColor={{ false: '#C9D6CC', true: colors.emerald }}
+                  thumbColor={testMode ? colors.gold : '#F4F4F4'}
+                />
+              </View>
+              {testMode ? (
+                <Text style={local.testModeOnNote}>
+                  Test mode is ON. GPS check skipped for this demo test. Fingerprint is still required.
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
+
           <TouchableOpacity
             style={[local.fingerprintButton, checkInDisabled && local.fingerprintButtonDisabled]}
             onPress={onCheckIn}
@@ -211,7 +248,9 @@ export default function HomeScreen({ employee, isDemo, onSignOut, onApplyLeave, 
 
           {settings ? (
             <Text style={{ color: colors.muted, fontSize: 12, marginTop: 12, textAlign: 'center', lineHeight: 17 }}>
-              Works only within {settings.radius_meters} m of the office. Office hours {settings.office_start_time} to {settings.office_end_time}. Late after {settings.late_cutoff_time}.
+              {isDemo && testMode
+                ? 'Test mode is ON. GPS check skipped for this demo test. Fingerprint is still required.'
+                : `Works only within ${settings.radius_meters} m of the office. Office hours ${settings.office_start_time} to ${settings.office_end_time}. Late after ${settings.late_cutoff_time}.`}
             </Text>
           ) : null}
           {message ? <SuccessBanner text={message} /> : null}
@@ -309,6 +348,14 @@ const local = {
   locationNotOk: { backgroundColor: colors.amberSoft },
   locationText: { fontSize: 12, fontWeight: '700' as const, color: colors.presentText },
   fingerprintButton: { alignItems: 'center' as const, paddingVertical: spacing.lg, marginTop: spacing.sm },
+  testModeBox: {
+    backgroundColor: '#FFF8E1', borderWidth: 1, borderColor: colors.gold,
+    borderRadius: radius.input, padding: spacing.sm, marginTop: spacing.sm,
+  },
+  testModeRow: { flexDirection: 'row' as const, alignItems: 'center' as const },
+  testModeLabel: { fontSize: 14, fontWeight: '800' as const, color: colors.deepGreen, lineHeight: 19 },
+  testModeNote: { fontSize: 12, color: colors.muted, lineHeight: 16, marginTop: 3 },
+  testModeOnNote: { fontSize: 12, fontWeight: '700' as const, color: colors.deepGreen, lineHeight: 16, marginTop: 8 },
   fingerprintButtonDisabled: { opacity: 0.75 },
   ringOuter: {
     width: 168, height: 168, borderRadius: 84, borderWidth: 1.5, borderColor: '#BFE0CB',

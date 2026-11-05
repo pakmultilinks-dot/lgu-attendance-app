@@ -451,6 +451,75 @@ The user approved a rebuild explicitly, so demo mode could reach his phone.
 
 Live limits, unchanged: real sign-in does NOT work live, no live Supabase project exists. Demo login works offline on the phone with no account. To make real sign-in live: create a free Supabase project, run supabase/schema.sql then supabase/seed.sql, set the real EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in the EAS preview env, rebuild. Fingerprint accept and real GPS at the office door still need a real-phone test. No Play Store publish.
 
+## APK build v3 with login fix (2026-11-05)
+
+The user approved the rebuild explicitly, as a continuation of the demo login rebuild.
+
+- Commit: d317f17 "Fix login screen: Try demo visible on load, no scroll needed on phone" (9 files, pushed to main, verified live on GitHub).
+- EAS project: @kominman/lgu-attendance, ID f7a0ea5a-f432-4eb6-8b01-07d80f0854af
+- Build 5 b84cea05-d4a1-4b18-b040-2898a6d8ced4 FINISHED, app 1.0.0, SDK 52.0.0, APK 59 MB, no build errors, first attempt.
+- APK download (Expo): https://expo.dev/artifacts/eas/kyNKj3dfM0WEMLbzKTuI0HsMVeeA4bnO6guGDbb426g.apk
+- Build page: https://expo.dev/accounts/kominman/projects/lgu-attendance/builds/b84cea05-d4a1-4b18-b040-2898a6d8ced4
+- Direct download link: https://muse.ai/files/1496070203584880/1601107027958125/2gdebj4p8fxm0ncqb22927v3/LGU-Attendance-App-v3-login-fix.apk (expires 2026-11-07T12:50:06Z, anyone with the link can open it)
+- Verified: downloaded 59 MB, file confirms Android package, JS bundle (1.5 MB) contains "Try demo" (2 occurrences) and "Ahmed Khan". SHA256: 685bc1d6800d9eee6cfa3b2759a51f74932c0137149007c7d1812f47c9aacb7f
+- Local file: LGU-Attendance-App-v3-login-fix.apk (gitignored, not committed).
+
+Live limits, unchanged: real sign-in does NOT work live, no live Supabase project exists. Demo login works offline on the phone with no account. To make real sign-in live: create a free Supabase project, run supabase/schema.sql then supabase/seed.sql, set the real EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in the EAS preview env, rebuild. Fingerprint accept and real GPS at the office door still need a real-phone test. No Play Store publish.
+
+## Demo test mode, 5 November 2026 (check in from home, demo only)
+
+The user tested APK v3 on his phone: demo login worked, Home, History,
+Apply for Leave and My Leaves all worked, but check in was correctly
+blocked because he was 4053 m from the office pin while at home. He
+asked for a test mode so he can test fingerprint check in from home.
+Approved 5 November 2026, 21:28 PKT.
+
+- On the demo Today screen only, inside the Today card above the
+  fingerprint button, a gold box holds a switch: "Test mode, check in
+  from anywhere", with the note "Demo only, for testing at home. Real
+  check in still needs 100 m at the office." When ON it also shows
+  "Test mode is ON. GPS check skipped for this demo test. Fingerprint
+  is still required." and the line under Check Out changes to match.
+  The switch is visible on load with no scrolling (label bottom at
+  450px at 390x844). It defaults to OFF and persists in AsyncStorage
+  (`lgu_demo_test_mode_v1`) across reloads. The login screen and real
+  mode show no switch at all.
+- Test mode OFF: the old behaviour. GPS 100 m check first, then the
+  fingerprint prompt. At home it refuses with the distance message.
+- Test mode ON, demo only: the GPS step is skipped entirely and no
+  location is read at all, for both Check In and Check Out. The real
+  phone fingerprint prompt still runs, and a failed fingerprint or a
+  phone with no sensor still writes nothing. A passed fingerprint
+  writes a demo record marked honestly with location verified No and
+  no distance, and the success message says the GPS check was skipped,
+  so a test check in can never pass as an office check in.
+- Real sign in is untouched and has no bypass. The live flow in
+  `mobile/src/lib/attendance.ts` (`doCheckIn`, `doCheckOut`) has no
+  test mode parameter and always runs the 100 m check. Home passes
+  test mode only to `demoCheckIn`/`demoCheckOut`, never to the live
+  functions. The E2E harness has a source guard that fails if
+  `attendance.ts` ever mentions test mode.
+- Implementation: `mobile/src/lib/demo.ts` (new `DEMO_TEST_MODE_KEY`,
+  `isDemoTestModeEnabled`/`setDemoTestModeEnabled`, optional
+  `testMode` on `demoCheckIn`/`demoCheckOut`); `mobile/src/screens/
+  Home.tsx` (Switch, demo-only, loaded in refresh, passed only to the
+  demo functions). Leave apply and history unchanged.
+- Tested 5 November 2026: mobile typecheck 0 errors, logic tests 43
+  passed, Excel tests 6 passed. Demo E2E (`tests/e2e-screenshots-demo.py`,
+  real Expo web export built with no Supabase env vars at all): 21
+  checks, 0 failed, no console errors, including 8 new test mode
+  checks at a simulated home location about 4 km north of the office
+  (31.5004, 74.4427, the E2E measured 4047 m there; the user's phone
+  reported 4053 m from his real home). Screenshots
+  `screenshots-demo/demo-test-mode-on.png`,
+  `screenshots-demo/demo-test-mode-off-blocked.png` and
+  `screenshots-demo/demo-test-mode-biometric.png`. The VM has no
+  fingerprint sensor, so the ON check proves the GPS gate is skipped
+  and the biometric gate still refuses; a real fingerprint accept
+  still needs a real phone.
+- Still NOT done: no EAS build, no GitHub push, no publish. The next
+  build (APK v4) ships this test mode.
+
 ## Login screen fix, 5 November 2026 (Try demo was unreachable)
 
 The user reported the real bug on his phone: the login screen did not
@@ -477,18 +546,3 @@ and at 390x700), plus a scroll fallback check at 390x500. New
 screenshots `screenshots-demo/demo-login-button.png` (overwritten
 with the fixed screen) and `screenshots-demo/demo-login-700.png`.
 Shipped in APK build v3 below.
-
-## APK build v3 with login fix (2026-11-05)
-
-The user approved the rebuild explicitly, as a continuation of the demo login rebuild.
-
-- Commit: d317f17 "Fix login screen: Try demo visible on load, no scroll needed on phone" (9 files, pushed to main, verified live on GitHub).
-- EAS project: @kominman/lgu-attendance, ID f7a0ea5a-f432-4eb6-8b01-07d80f0854af
-- Build 5 b84cea05-d4a1-4b18-b040-2898a6d8ced4 FINISHED, app 1.0.0, SDK 52.0.0, APK 59 MB, no build errors, first attempt.
-- APK download (Expo): https://expo.dev/artifacts/eas/kyNKj3dfM0WEMLbzKTuI0HsMVeeA4bnO6guGDbb426g.apk
-- Build page: https://expo.dev/accounts/kominman/projects/lgu-attendance/builds/b84cea05-d4a1-4b18-b040-2898a6d8ced4
-- Direct download link: https://muse.ai/files/1496070203584880/1601107027958125/2gdebj4p8fxm0ncqb22927v3/LGU-Attendance-App-v3-login-fix.apk (expires 2026-11-07T12:50:06Z, anyone with the link can open it)
-- Verified: downloaded 59 MB, file confirms Android package, JS bundle (1.5 MB) contains "Try demo" (2 occurrences) and "Ahmed Khan". SHA256: 685bc1d6800d9eee6cfa3b2759a51f74932c0137149007c7d1812f47c9aacb7f
-- Local file: LGU-Attendance-App-v3-login-fix.apk (gitignored, not committed).
-
-Live limits, unchanged: real sign-in does NOT work live, no live Supabase project exists. Demo login works offline on the phone with no account. To make real sign-in live: create a free Supabase project, run supabase/schema.sql then supabase/seed.sql, set the real EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in the EAS preview env, rebuild. Fingerprint accept and real GPS at the office door still need a real-phone test. No Play Store publish.
