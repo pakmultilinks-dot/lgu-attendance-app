@@ -193,6 +193,13 @@ npx eas-cli build --platform android --profile preview
 
 That produces an APK download link to share with staff. No EAS build was run as part of this scaffold. Publishing to Google Play needs a one time $25 developer account and a signed AAB, see SPEC.md.
 
+## APK build v2 with demo login (2026-11-05)
+
+- Commit ffd8748, EAS build 4 fbb40b06-0f85-40fc-97d1-e0db55a361f9 FINISHED, APK 59 MB.
+- Expo APK: https://expo.dev/artifacts/eas/XYZyk-nkK_UDbh8qrkrL8xSSCZMFGpS6bhsWq0kEoXc.apk
+- Direct download: https://muse.ai/files/1496070203584880/1716689630466724/qpyls1w76377rv37yki6op8l/LGU-Attendance-App-v2-demo.apk (expires 2026-11-07T12:02:48Z)
+- On the phone, open the app and tap "Try demo, no account needed" to sign in as Ahmed Khan, EX-001, offline. Real sign-in still needs a live Supabase project, see SPEC.md.
+
 ## Daily use
 
 - Employee: open app, tap Check In on arrival, tap Check Out on leaving. Fingerprint each time. To take leave, use Apply for Leave in the app, then check My Leaves for the HOD decision.

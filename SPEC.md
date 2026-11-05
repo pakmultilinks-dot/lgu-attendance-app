@@ -435,3 +435,18 @@ added so he can get inside the app on his phone with one tap.
   GPS at the office door still need the next APK build and a phone test.
 - Still NOT done: no EAS build, no GitHub push, no publish. The next
   build ships this demo mode as-is.
+
+## APK build v2 with demo login (2026-11-05)
+
+The user approved a rebuild explicitly, so demo mode could reach his phone.
+
+- Commit: ffd8748 "Add demo login mode: Try demo as Ahmed Khan EX-001, offline, no password" (20 files, pushed to main, verified live on GitHub).
+- EAS project: @kominman/lgu-attendance, ID f7a0ea5a-f432-4eb6-8b01-07d80f0854af
+- Build 4 fbb40b06-0f85-40fc-97d1-e0db55a361f9 FINISHED, app 1.0.0, SDK 52.0.0, APK 59 MB, no build errors, first attempt.
+- APK download (Expo): https://expo.dev/artifacts/eas/XYZyk-nkK_UDbh8qrkrL8xSSCZMFGpS6bhsWq0kEoXc.apk
+- Build page: https://expo.dev/accounts/kominman/projects/lgu-attendance/builds/fbb40b06-0f85-40fc-97d1-e0db55a361f9
+- Direct download link: https://muse.ai/files/1496070203584880/1716689630466724/qpyls1w76377rv37yki6op8l/LGU-Attendance-App-v2-demo.apk (expires 2026-11-07T12:02:48Z, anyone with the link can open it)
+- Verified: downloaded 59 MB, file confirms Android package, classes.dex present, JS bundle (1.5 MB) contains "Try demo" and "Ahmed Khan", demo storage keys present. SHA256: 60d718de31bfc409288c87f69e82bd92822473a893509e51b3dfcc790845a860
+- Local file: LGU-Attendance-App-v2-demo.apk (gitignored, not committed).
+
+Live limits, unchanged: real sign-in does NOT work live, no live Supabase project exists. Demo login works offline on the phone with no account. To make real sign-in live: create a free Supabase project, run supabase/schema.sql then supabase/seed.sql, set the real EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in the EAS preview env, rebuild. Fingerprint accept and real GPS at the office door still need a real-phone test. No Play Store publish.
